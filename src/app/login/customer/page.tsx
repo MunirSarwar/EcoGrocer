@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,13 +67,15 @@ export default function CustomerLoginPage() {
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      if(userCredential.user) {
-        await updateProfile(userCredential.user, { displayName: values.name });
+      const user = userCredential.user;
+      if(user) {
+        await updateProfile(user, { displayName: values.name });
+        await sendEmailVerification(user);
       }
 
       toast({
         title: "Registration Successful",
-        description: `Welcome, ${values.name}! Please log in.`,
+        description: `Welcome, ${values.name}! A verification email has been sent. Please check your inbox.`,
       });
       registerForm.reset();
       setActiveTab("login"); // Switch to login tab after successful registration
