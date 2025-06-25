@@ -18,7 +18,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             className="object-cover"
-            data-ai-hint={`${product.category} product`}
+            data-ai-hint={product.name.toLowerCase().split(' ').slice(0, 2).join(' ')}
           />
         </div>
       </CardHeader>
