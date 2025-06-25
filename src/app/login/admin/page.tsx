@@ -5,16 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
     const { toast } = useToast();
+    const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         toast({
             title: "Login Successful",
-            description: "Welcome back, Admin!",
+            description: "Welcome back, Admin! Redirecting...",
         });
+        router.push('/admin/dashboard');
     }
 
   return (
