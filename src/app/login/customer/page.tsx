@@ -67,9 +67,10 @@ export default function CustomerLoginPage() {
         description: `An OTP has been sent to ${values.phone}.`,
       });
     } catch (error: any) {
+       console.error("OTP Send Error:", error);
        toast({
         title: "Registration Failed",
-        description: "Could not send OTP. Please check the number and reCAPTCHA.",
+        description: "Could not send OTP. Please check the phone number and try again.",
         variant: "destructive",
       });
     } finally {
@@ -96,6 +97,7 @@ export default function CustomerLoginPage() {
       otpForm.reset();
       setOtpSent(false);
     } catch (error: any) {
+      console.error("OTP Verify Error:", error);
       toast({
         title: "Verification Failed",
         description: "The OTP you entered is incorrect. Please try again.",
