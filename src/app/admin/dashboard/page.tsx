@@ -1,8 +1,35 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DollarSign, ShoppingCart, Users, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-const recentOrders: any[] = [];
+// Mock data for recently registered users. In a real app, this would be fetched from your database.
+const recentUsers = [
+  {
+    id: 'USR001',
+    name: 'Suresh Kumar',
+    email: 'suresh.kumar@example.com',
+    status: 'Verified',
+  },
+  {
+    id: 'USR002',
+    name: 'Priya Sharma',
+    email: 'priya.sharma@example.com',
+    status: 'Verified',
+  },
+  {
+    id: 'USR003',
+    name: 'Amit Patel',
+    email: 'amit.patel@example.com',
+    status: 'Pending',
+  },
+  {
+    id: 'USR004',
+    name: 'Deepika Rao',
+    email: 'deepika.rao@example.com',
+    status: 'Verified',
+  }
+];
 
 export default function AdminDashboardPage() {
   return (
@@ -40,9 +67,9 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+0</div>
+            <div className="text-2xl font-bold">+{recentUsers.length}</div>
             <p className="text-xs text-muted-foreground">
-              +0.0% from last month
+              in the last 30 days
             </p>
           </CardContent>
         </Card>
@@ -61,33 +88,35 @@ export default function AdminDashboardPage() {
       </div>
       <Card>
           <CardHeader>
-              <CardTitle>Recent Orders</CardTitle>
-              <CardDescription>A list of the most recent orders.</CardDescription>
+              <CardTitle>Recent Registrations</CardTitle>
+              <CardDescription>A list of the most recent customer sign-ups.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Order ID</TableHead>
                         <TableHead>Customer</TableHead>
-                        <TableHead>Amount</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Status</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {recentOrders.length > 0 ? (
-                        recentOrders.map((order) => (
-                            <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.id}</TableCell>
-                                <TableCell>{order.customer}</TableCell>
-                                <TableCell>{order.amount}</TableCell>
-                                <TableCell>{order.status}</TableCell>
+                    {recentUsers.length > 0 ? (
+                        recentUsers.map((user) => (
+                            <TableRow key={user.id}>
+                                <TableCell className="font-medium">{user.name}</TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>
+                                  <Badge variant={user.status === 'Verified' ? 'default' : 'secondary'}>
+                                    {user.status}
+                                  </Badge>
+                                </TableCell>
                             </TableRow>
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">
-                                No recent orders.
+                            <TableCell colSpan={3} className="h-24 text-center">
+                                No new registrations.
                             </TableCell>
                         </TableRow>
                     )}
