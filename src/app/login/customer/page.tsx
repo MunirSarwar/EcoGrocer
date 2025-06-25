@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-// import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-// import { app } from '@/lib/firebase';
+import { app } from '@/lib/firebase';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -29,7 +29,7 @@ export default function CustomerLoginPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
-  // const auth = getAuth(app);
+  const auth = getAuth(app);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -44,12 +44,10 @@ export default function CustomerLoginPage() {
   const handleLogin = async (values: z.infer<typeof loginSchema>) => {
     setLoading(true);
     try {
-      // TODO: Uncomment the following line to enable Firebase login
-      // await signInWithEmailAndPassword(auth, values.email, values.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       
-      console.log("Login submitted with:", values);
       toast({
-        title: "Login Successful (Simulated)",
+        title: "Login Successful",
         description: "Welcome back!",
       });
       loginForm.reset();
@@ -57,7 +55,7 @@ export default function CustomerLoginPage() {
     } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid credentials.", // In a real app, use error.message
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -68,23 +66,21 @@ export default function CustomerLoginPage() {
   const handleRegister = async (values: z.infer<typeof registrationSchema>) => {
     setLoading(true);
     try {
-      // TODO: Uncomment the following lines to enable Firebase registration
-      // const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // if(userCredential.user) {
-      //   await updateProfile(userCredential.user, { displayName: values.name });
-      // }
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      if(userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: values.name });
+      }
 
-      console.log("Registration submitted with:", values);
       toast({
-        title: "Registration Successful (Simulated)",
-        description: `Welcome, ${values.name}!`,
+        title: "Registration Successful",
+        description: `Welcome, ${values.name}! Please log in.`,
       });
       registerForm.reset();
       setActiveTab("login"); // Switch to login tab after successful registration
     } catch (error: any) {
        toast({
         title: "Registration Failed",
-        description: "Could not create account.", // In a real app, use error.message
+        description: error.message,
         variant: "destructive",
       });
     } finally {
