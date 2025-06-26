@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { Home, ShoppingCart, Package, Users, BarChart3, Settings } from "lucide-react";
+import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Store } from "lucide-react";
 
 const navItems = [
     { href: "/admin/dashboard", icon: <Home />, label: "Dashboard", tooltip: "Dashboard" },
-    { href: "#", icon: <ShoppingCart />, label: "Orders", tooltip: "Orders" },
+    { href: "/admin/orders", icon: <ShoppingCart />, label: "Orders", tooltip: "Orders" },
     { href: "#", icon: <Package />, label: "Products", tooltip: "Products" },
+    { href: "/admin/sellers", icon: <Store />, label: "Sellers", tooltip: "Sellers" },
     { href: "/admin/customers", icon: <Users />, label: "Customers", tooltip: "Customers" },
     { href: "#", icon: <BarChart3 />, label: "Analytics", tooltip: "Analytics" },
     { href: "#", icon: <Settings />, label: "Settings", tooltip: "Settings" },

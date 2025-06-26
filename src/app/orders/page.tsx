@@ -73,7 +73,7 @@ export default function OrdersPage() {
                             <AccordionTrigger>
                                 <div className="flex justify-between w-full pr-4 text-left">
                                     <div>
-                                        <p className="font-medium">Order ID: {order.id.substring(6, 15)}...</p>
+                                        <p className="font-medium">Order #{order.id.split('-').pop()?.toUpperCase()}</p>
                                         <p className="text-sm text-muted-foreground">{new Date(order.date).toLocaleDateString('en-IN', {
                                             year: 'numeric', month: 'long', day: 'numeric'
                                         })}</p>
@@ -85,7 +85,10 @@ export default function OrdersPage() {
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
-                                <Separator className="my-4"/>
+                                <Separator className="my-2"/>
+                                <div className="text-xs text-muted-foreground pb-4">
+                                    Full Order ID: {order.id}
+                                </div>
                                 <div className="space-y-4">
                                 {order.items.map(item => (
                                     <div key={item.id} className="flex items-center justify-between">
