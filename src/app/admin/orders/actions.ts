@@ -49,7 +49,15 @@ export async function getAllOrders(): Promise<AdminOrder[]> {
     );
 
     return orders;
-  } catch (error) {
+  } catch (error: any) {
+    // This error code (5) means "NOT_FOUND". It's thrown if the 'orders' collection
+    // doesn't exist yet (i.e., no orders have been placed). 
+    // This is an expected condition, not an actual error, so we can safely return an empty array.
+    if (error.code === 5) {
+      return [];
+    }
+    // For any other unexpected errors, we log them and return an empty array 
+    // to prevent the page from crashing.
     console.error('Error fetching all orders:', error);
     return [];
   }
