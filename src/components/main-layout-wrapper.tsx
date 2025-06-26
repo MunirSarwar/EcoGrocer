@@ -1,3 +1,4 @@
+
 'use client'
 
 import { usePathname } from 'next/navigation'
@@ -8,9 +9,11 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
     const pathname = usePathname()
     const isAdmin = pathname.startsWith('/admin')
     const isLogin = pathname.startsWith('/login')
+    const isSeller = pathname.startsWith('/seller')
+    const isDelivery = pathname.startsWith('/delivery')
 
-    // Don't show the main header/footer on admin or login pages
-    if (isAdmin || isLogin) {
+    // Don't show the main header/footer on admin, seller, delivery or login pages
+    if (isAdmin || isLogin || isSeller || isDelivery) {
         return <>{children}</>
     }
     

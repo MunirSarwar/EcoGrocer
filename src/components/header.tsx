@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, User, LogOut, Package, LayoutGrid, ShoppingCart } from 'lucide-react';
+import { ChevronDown, User, LogOut, Package, LayoutGrid, ShoppingCart, Truck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -61,6 +62,9 @@ export default function Header() {
     });
     router.push('/');
   };
+
+  const isSeller = user?.displayName?.includes('(Seller)');
+  const isDelivery = user?.displayName?.includes('(Delivery)');
 
   return (
     <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-40 border-b">
@@ -120,11 +124,18 @@ export default function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user.displayName?.includes('(Seller)') ? (
+                  {isSeller ? (
                       <DropdownMenuItem asChild className="cursor-pointer">
                           <Link href="/seller/dashboard">
                               <LayoutGrid className="mr-2 h-4 w-4" />
                               <span>Seller Dashboard</span>
+                          </Link>
+                      </DropdownMenuItem>
+                  ) : isDelivery ? (
+                       <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link href="/delivery/dashboard">
+                              <Truck className="mr-2 h-4 w-4" />
+                              <span>Delivery Dashboard</span>
                           </Link>
                       </DropdownMenuItem>
                   ) : (
@@ -166,6 +177,9 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/login/seller">Seller</Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                  <Link href="/login/delivery">Delivery Partner</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/login/admin">Admin</Link>

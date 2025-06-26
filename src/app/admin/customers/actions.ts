@@ -1,3 +1,4 @@
+
 'use server';
 
 import admin from '@/lib/firebase-admin';
@@ -15,7 +16,7 @@ export async function getCustomers(): Promise<Customer[]> {
     const userRecords = await admin.auth().listUsers();
 
     const customers: Customer[] = userRecords.users
-      .filter(user => user.email && !user.displayName?.includes('(Seller)'))
+      .filter(user => user.email && !user.displayName?.includes('(Seller)') && !user.displayName?.includes('(Delivery)'))
       .map(user => ({
         id: user.uid,
         name: user.displayName || 'N/A',
