@@ -15,7 +15,7 @@ export async function getCustomers(): Promise<Customer[]> {
     const userRecords = await admin.auth().listUsers();
 
     const customers: Customer[] = userRecords.users
-      .filter(user => user.email)
+      .filter(user => user.email && !user.displayName?.includes('(Seller)'))
       .map(user => ({
         id: user.uid,
         name: user.displayName || 'N/A',
