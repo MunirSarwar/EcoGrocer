@@ -65,7 +65,7 @@ export async function getSellers(): Promise<Seller[]> {
 export async function approveSeller(sellerId: string): Promise<{ success: boolean; message: string }> {
   try {
     const firestore = admin.firestore();
-    await firestore.collection('sellers').doc(sellerId).update({ status: 'approved' });
+    await firestore.collection('sellers').doc(sellerId).set({ status: 'approved' }, { merge: true });
     
     const user = await admin.auth().getUser(sellerId);
     console.log(`SIMULATION: Approval email sent to seller ${user.email}`);
@@ -81,7 +81,7 @@ export async function approveSeller(sellerId: string): Promise<{ success: boolea
 export async function rejectSeller(sellerId: string): Promise<{ success: boolean; message: string }> {
   try {
     const firestore = admin.firestore();
-    await firestore.collection('sellers').doc(sellerId).update({ status: 'rejected' });
+    await firestore.collection('sellers').doc(sellerId).set({ status: 'rejected' }, { merge: true });
 
     const user = await admin.auth().getUser(sellerId);
     console.log(`SIMULATION: Rejection email sent to seller ${user.email}`);

@@ -68,7 +68,7 @@ export async function getDeliveryPartners(): Promise<DeliveryPartner[]> {
 export async function approvePartner(partnerId: string): Promise<{ success: boolean; message: string }> {
   try {
     const firestore = admin.firestore();
-    await firestore.collection('deliveryPartners').doc(partnerId).update({ status: 'approved' });
+    await firestore.collection('deliveryPartners').doc(partnerId).set({ status: 'approved' }, { merge: true });
     
     // In a real app, you would trigger an email here using a service like SendGrid or Resend.
     // For this prototype, we log a confirmation to the console.
@@ -86,7 +86,7 @@ export async function approvePartner(partnerId: string): Promise<{ success: bool
 export async function rejectPartner(partnerId: string): Promise<{ success: boolean; message: string }> {
   try {
     const firestore = admin.firestore();
-    await firestore.collection('deliveryPartners').doc(partnerId).update({ status: 'rejected' });
+    await firestore.collection('deliveryPartners').doc(partnerId).set({ status: 'rejected' }, { merge: true });
 
     // In a real app, you would trigger an email here.
     const user = await admin.auth().getUser(partnerId);
