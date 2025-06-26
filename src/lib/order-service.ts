@@ -19,7 +19,9 @@ export async function getOrders(userId: string): Promise<Order[]> {
   }
   try {
     const ordersRef = collection(db, 'orders');
-    const q = query(ordersRef, where('userId', '==', userId), orderBy('date', 'desc'));
+    // We removed orderBy('date') to avoid needing a composite index.
+    // We will sort the results in JavaScript instead.
+    const q = query(ordersRef, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     
     const orders: Order[] = [];
@@ -35,21 +37,18 @@ export async function getOrders(userId: string): Promise<Order[]> {
         date: date,
       });
     });
+
+    // Sort orders by date descending in JavaScript
+    orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
     return orders;
   } catch (error: any) {
-    // This error happens if the composite index for the query isn't created in Firestore yet.
-    if (error.code === 'failed-precondition') {
-      console.warn(
-        "Firestore index missing. This is expected on the first query. " +
-        "Go to the link in the Firebase console error to create it automatically."
-      );
-      return [];
-    }
-     // This error code means the collection doesn't exist yet, which is fine.
-    if (error.code === 5) {
+    // This error code means the collection doesn't exist yet, which is fine for new users.
+    if (error.code === 5) { // Firestore code for NOT_FOUND
       return [];
     }
     console.error("Error fetching orders from Firestore:", error);
+    // For any other errors, return an empty array to prevent crashing the page.
     return [];
   }
 }
@@ -61,20 +60,20 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
   }
   
   try {
-    const orderItems = cartItems.map(item => ({
-      id: item.id,
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      image: item.image,
-      description: item.description,
-      quantity: item.quantity,
-    }));
-
+    // We create a clean object to avoid any issues with complex object structures
+    // that might not be directly compatible with Firestore.
     const newOrderData = {
-      userId,
-      items: orderItems,
-      total,
+      userId: userId,
+      items: cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        price: item.price,
+        image: item.image,
+        description: item.description,
+        quantity: item.quantity,
+      })),
+      total: total,
       date: serverTimestamp(),
     };
 
@@ -83,6 +82,6 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
   } catch (error) {
     console.error("Failed to write order to Firestore:", error);
     // Re-throw a more user-friendly error to be caught by the checkout page.
-    throw new Error("Could not save your order. Please try again.");
+    throw new Error("Could not save your order to the database. Please try again.");
   }
 }
