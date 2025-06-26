@@ -76,7 +76,7 @@ export default async function DeliveryPartnersPage() {
                                     <Badge variant='secondary'>Pending</Badge>
                                 )}
                             </TableCell>
-                            <TableCell className="text-muted-foreground text-xs italic">DB Required</TableCell>
+                            <TableCell>{partner.vehicleType}</TableCell>
                             <TableCell className="text-muted-foreground text-xs italic">DB Required</TableCell>
                             <TableCell className="text-right">
                               {new Date(partner.joined).toLocaleDateString('en-IN', {

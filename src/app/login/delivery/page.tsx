@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,13 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { setDoc, doc } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -58,7 +58,12 @@ export default function DeliveryLoginPage() {
       
       await updateProfile(user, { displayName: `${values.name} (Delivery)` });
       
-      // TODO: Save phone, vehicle type, and license number to a secure database (e.g., Firestore) associated with user.uid.
+      // Save extra details to Firestore
+      await setDoc(doc(db, "deliveryPartners", user.uid), {
+          phone: values.phone,
+          licenseNumber: values.licenseNumber,
+          vehicleType: values.vehicleType,
+      });
       
       await sendEmailVerification(user);
 
