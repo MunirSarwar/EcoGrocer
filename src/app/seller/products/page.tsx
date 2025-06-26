@@ -43,7 +43,7 @@ export default function SellerProductsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.length > 0 ? (
+                        {Array.isArray(products) && products.length > 0 ? (
                             products.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell className="hidden sm:table-cell">
