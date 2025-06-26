@@ -41,14 +41,15 @@ export async function getOrders(userId: string): Promise<Order[]> {
 }
 
 // Function to add a new order
-export async function addOrder(userId: string, cartItems: CartItem[], total: number): Promise<Order | null> {
+export async function addOrder(userId: string, cartItems: CartItem[], total: number): Promise<Order> {
   if (!userId || !cartItems || cartItems.length === 0) {
-    return null;
+    throw new Error("User ID and cart items are required.");
   }
   try {
     const newOrderData = {
       userId,
-      items: cartItems,
+      // Firestore requires plain objects. This ensures we don't pass any custom class instances or undefined values.
+      items: JSON.parse(JSON.stringify(cartItems)),
       total,
       date: serverTimestamp(),
     };
@@ -64,6 +65,7 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
 
   } catch (error) {
     console.error("Error adding order to Firestore:", error);
-    return null;
+    // Re-throw the error so the calling function can handle it.
+    throw error;
   }
 }
