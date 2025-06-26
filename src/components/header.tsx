@@ -136,7 +136,7 @@ export default function Header() {
                               </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
-                              <Link href="#">
+                              <Link href="/orders">
                                   <Package className="mr-2 h-4 w-4" />
                                   <span>My Orders</span>
                               </Link>

@@ -7,24 +7,53 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { app } from '@/lib/firebase';
+import { addOrder } from '@/lib/order-service';
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleConfirmOrder = () => {
+    if (!user) {
+        toast({
+            title: "Please Login",
+            description: "You must be logged in to place an order.",
+            variant: "destructive",
+        });
+        router.push('/login/customer');
+        return;
+    }
+    
+    setLoading(true);
+
     // In a real app, this would trigger payment processing.
-    // For this prototype, we'll clear the cart and redirect to the homepage.
+    // For this prototype, we'll save the order, clear the cart, and redirect.
+    addOrder(user.uid, cartItems, cartTotal);
+    
     toast({
       title: "Order Placed!",
-      description: "Thank you for your purchase. (This is a demo)",
+      description: "Thank you for your purchase. We've saved your order.",
     });
+    
     clearCart();
-    router.push('/');
+    router.push('/orders');
   };
 
   if (cartItems.length === 0) {
@@ -105,8 +134,8 @@ export default function CheckoutPage() {
                 </Alert>
             </CardContent>
             <CardFooter>
-                <Button className="w-full" onClick={handleConfirmOrder}>
-                    Confirm Order
+                <Button className="w-full" onClick={handleConfirmOrder} disabled={loading}>
+                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Placing Order...</> : 'Confirm Order'}
                 </Button>
             </CardFooter>
           </Card>
