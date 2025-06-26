@@ -58,18 +58,19 @@ export default function DeliveryLoginPage() {
       
       await updateProfile(user, { displayName: `${values.name} (Delivery)` });
       
-      // Save extra details to Firestore
+      // Save extra details to Firestore with a pending status
       await setDoc(doc(db, "deliveryPartners", user.uid), {
           phone: values.phone,
           licenseNumber: values.licenseNumber,
           vehicleType: values.vehicleType,
+          status: 'pending', // Set initial status
       });
       
       await sendEmailVerification(user);
 
       toast({
         title: "Registration Successful!",
-        description: "A verification link has been sent to your email. Please verify to continue.",
+        description: "Your application is under review. A verification link has been sent to your email. Please verify to continue.",
       });
       registerForm.reset();
       setActiveTab('login');

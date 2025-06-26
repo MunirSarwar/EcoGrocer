@@ -12,7 +12,7 @@ const navItems = [
     { href: "#", icon: <Package />, label: "Products", tooltip: "Products" },
     { href: "/admin/sellers", icon: <Store />, label: "Sellers", tooltip: "Sellers" },
     { href: "/admin/customers", icon: <Users />, label: "Customers", tooltip: "Customers" },
-    { href: "/admin/delivery", icon: <Truck />, label: "Delivery", tooltip: "Delivery" },
+    { href: "/admin/delivery", icon: <Truck />, label: "Delivery Partners", tooltip: "Delivery Partners" },
     { href: "#", icon: <BarChart3 />, label: "Analytics", tooltip: "Analytics" },
     { href: "#", icon: <Settings />, label: "Settings", tooltip: "Settings" },
 ];
