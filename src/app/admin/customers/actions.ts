@@ -10,12 +10,12 @@ export interface Customer {
     joined: string;
 }
 
-export async function getVerifiedCustomers(): Promise<Customer[]> {
+export async function getCustomers(): Promise<Customer[]> {
   try {
     const userRecords = await admin.auth().listUsers();
 
-    const verifiedCustomers: Customer[] = userRecords.users
-      .filter(user => user.emailVerified && user.email) // Ensure they are verified and have an email
+    const customers: Customer[] = userRecords.users
+      .filter(user => user.email)
       .map(user => ({
         id: user.uid,
         name: user.displayName || 'N/A',
@@ -24,7 +24,7 @@ export async function getVerifiedCustomers(): Promise<Customer[]> {
         joined: user.metadata.creationTime,
       }));
 
-    return verifiedCustomers;
+    return customers;
   } catch (error) {
     console.error('Error fetching users:', error);
     // In a real app, you'd want more robust error handling.

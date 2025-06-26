@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getVerifiedCustomers } from "./actions"; // Import the new server action
+import { getCustomers } from "./actions"; // Import the updated server action
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
@@ -41,61 +41,118 @@ export default async function CustomersPage() {
     )
   }
 
-  const verifiedCustomers = await getVerifiedCustomers();
+  const allCustomers = await getCustomers();
+  const verifiedCustomers = allCustomers.filter(c => c.emailVerified);
+  const pendingCustomers = allCustomers.filter(c => !c.emailVerified);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Verified Customers</CardTitle>
-        <CardDescription>A list of all customers who have verified their email address.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Joined On</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-             {verifiedCustomers.length > 0 ? (
-                verifiedCustomers.map((customer) => (
-                    <TableRow key={customer.id}>
-                        <TableCell>
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-9 w-9">
-                                    <AvatarFallback>{getInitials(customer.name || '')}</AvatarFallback>
-                                </Avatar>
-                                <div className="font-medium">{customer.name}</div>
-                            </div>
-                        </TableCell>
-                        <TableCell>{customer.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={customer.emailVerified ? 'default' : 'secondary'}>
-                            {customer.emailVerified ? 'Verified' : 'Unverified'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {new Date(customer.joined).toLocaleDateString('en-IN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
+    <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Verified Customers</CardTitle>
+            <CardDescription>A list of customers who have verified their email address.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Joined On</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                 {verifiedCustomers.length > 0 ? (
+                    verifiedCustomers.map((customer) => (
+                        <TableRow key={customer.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarFallback>{getInitials(customer.name || '')}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="font-medium">{customer.name}</div>
+                                </div>
+                            </TableCell>
+                            <TableCell>{customer.email}</TableCell>
+                            <TableCell>
+                              <Badge variant='default'>
+                                Verified
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Date(customer.joined).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
+                            </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                            No verified customers found.
                         </TableCell>
                     </TableRow>
-                ))
-            ) : (
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Verification</CardTitle>
+            <CardDescription>A list of customers who have not yet verified their email address.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                        No verified customers found.
-                    </TableCell>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Joined On</TableHead>
                 </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                 {pendingCustomers.length > 0 ? (
+                    pendingCustomers.map((customer) => (
+                        <TableRow key={customer.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarFallback>{getInitials(customer.name || '')}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="font-medium">{customer.name}</div>
+                                </div>
+                            </TableCell>
+                            <TableCell>{customer.email}</TableCell>
+                            <TableCell>
+                              <Badge variant='secondary'>
+                                Pending
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Date(customer.joined).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
+                            </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                            No customers pending verification.
+                        </TableCell>
+                    </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+    </div>
   );
 }
