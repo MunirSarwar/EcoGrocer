@@ -18,8 +18,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, User, LogOut, Package, LayoutGrid } from 'lucide-react';
+import { ChevronDown, User, LogOut, Package, LayoutGrid, ShoppingCart } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from '@/hooks/use-cart';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import Cart from '@/components/cart';
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return '';
@@ -33,6 +36,7 @@ export default function Header() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -78,56 +82,75 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-4">
           {loading ? (
-            <Skeleton className="h-10 w-28 rounded-md" />
+            <Skeleton className="h-10 w-40 rounded-md" />
           ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback>{getInitials(user.displayName) || <User />}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {user.displayName?.includes('(Seller)') ? (
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                        <Link href="/seller/dashboard">
-                            <LayoutGrid className="mr-2 h-4 w-4" />
-                            <span>Seller Dashboard</span>
-                        </Link>
-                    </DropdownMenuItem>
-                ) : (
-                    <>
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                            <Link href="/profile">
-                                <User className="mr-2 h-4 w-4" />
-                                <span>My Profile</span>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                            <Link href="#">
-                                <Package className="mr-2 h-4 w-4" />
-                                <span>My Orders</span>
-                            </Link>
-                        </DropdownMenuItem>
-                    </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="relative">
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-xs">
+                        {cartCount}
+                      </span>
+                    )}
+                    <ShoppingCart className="h-5 w-5" />
+                    <span className="sr-only">Open Cart</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="flex flex-col p-0">
+                  <Cart />
+                </SheetContent>
+              </Sheet>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback>{getInitials(user.displayName) || <User />}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {user.displayName?.includes('(Seller)') ? (
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link href="/seller/dashboard">
+                              <LayoutGrid className="mr-2 h-4 w-4" />
+                              <span>Seller Dashboard</span>
+                          </Link>
+                      </DropdownMenuItem>
+                  ) : (
+                      <>
+                          <DropdownMenuItem asChild className="cursor-pointer">
+                              <Link href="/profile">
+                                  <User className="mr-2 h-4 w-4" />
+                                  <span>My Profile</span>
+                              </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild className="cursor-pointer">
+                              <Link href="#">
+                                  <Package className="mr-2 h-4 w-4" />
+                                  <span>My Orders</span>
+                              </Link>
+                          </DropdownMenuItem>
+                      </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
