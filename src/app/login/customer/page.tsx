@@ -21,6 +21,7 @@ const registrationSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     email: z.string().email({ message: "Please enter a valid email address." }),
     password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+    phone: z.string().min(10, { message: "Please enter a valid 10-digit phone number." }).max(15, { message: "Phone number is too long." }),
     address: z.string().min(10, { message: "Address must be at least 10 characters." }),
 });
 
@@ -42,7 +43,7 @@ export default function CustomerLoginPage() {
 
   const registerForm = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { name: "", email: "", password: "", address: "" },
+    defaultValues: { name: "", email: "", password: "", phone: "", address: "" },
   });
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -265,6 +266,17 @@ export default function CustomerLoginPage() {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl><Input placeholder="you@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl><Input type="tel" placeholder="e.g., 9876543210" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
