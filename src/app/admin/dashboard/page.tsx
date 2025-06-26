@@ -1,32 +1,31 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, ShoppingCart, Users, Package, Phone } from "lucide-react";
+import { DollarSign, ShoppingCart, Users, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-// Mock data for recently registered users. In a real app, this would be fetched from your database.
 const recentUsers = [
   {
     id: 'USR001',
     name: 'Suresh Kumar',
-    phone: '+91 9876543210',
+    email: 'suresh.k@example.com',
     status: 'Verified',
   },
   {
     id: 'USR002',
     name: 'Priya Sharma',
-    phone: '+91 9876543211',
+    email: 'priya.sharma@example.com',
     status: 'Verified',
   },
   {
     id: 'USR003',
     name: 'Amit Patel',
-    phone: '+91 9876543212',
-    status: 'Pending',
+    email: 'amit.p@example.com',
+    status: 'Pending Verification',
   },
   {
     id: 'USR004',
     name: 'Deepika Rao',
-    phone: '+91 9876543213',
+    email: 'deepika.rao@example.com',
     status: 'Verified',
   }
 ];
@@ -96,7 +95,7 @@ export default function AdminDashboardPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Customer</TableHead>
-                        <TableHead>Phone</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Status</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -105,7 +104,7 @@ export default function AdminDashboardPage() {
                         recentUsers.map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium">{user.name}</TableCell>
-                                <TableCell>{user.phone}</TableCell>
+                                <TableCell>{user.email}</TableCell>
                                 <TableCell>
                                   <Badge variant={user.status === 'Verified' ? 'default' : 'secondary'}>
                                     {user.status}

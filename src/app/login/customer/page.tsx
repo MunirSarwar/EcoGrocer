@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect }from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, updateProfile, type ConfirmationResult } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,73 +14,59 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { app } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const registrationSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
     address: z.string().min(10, { message: "Address must be at least 10 characters." }),
-    phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, { message: "Please enter a valid phone number with country code." }),
 });
 
-const otpSchema = z.object({
-  otp: z.string().length(6, { message: "OTP must be 6 digits." }),
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
 export default function CustomerLoginPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [userData, setUserData] = useState<{name: string} | null>(null);
   const auth = getAuth(app);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !(window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response: any) => {
-              // reCAPTCHA solved.
-            }
-        });
-    }
-  }, [auth]);
 
   const registerForm = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { name: "", address: "", phone: "" },
+    defaultValues: { name: "", email: "", password: "", address: "" },
   });
 
-  const otpForm = useForm<z.infer<typeof otpSchema>>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
   });
 
   const handleRegister = async (values: z.infer<typeof registrationSchema>) => {
     setLoading(true);
     try {
-      const verifier = (window as any).recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, values.phone, verifier);
-      setConfirmationResult(result);
-      setUserData({ name: values.name });
-      setOtpSent(true);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+      
+      await updateProfile(user, { displayName: values.name });
+      await sendEmailVerification(user);
+
       toast({
-        title: "OTP Sent",
-        description: `An OTP has been sent to ${values.phone}.`,
+        title: "Registration Successful!",
+        description: "A verification email has been sent. Please check your inbox to complete registration.",
       });
+      registerForm.reset();
+
     } catch (error: any) {
-       console.error("OTP Send Error:", error);
-       let errorMessage = "Could not send OTP. Please check the phone number and try again.";
-       if (error.code === 'auth/invalid-phone-number') {
-           errorMessage = "The phone number format is invalid. Please include the country code (e.g., +91).";
-       } else if (error.code === 'auth/too-many-requests') {
-           errorMessage = "You've tried to send too many OTPs. Please wait a while before trying again.";
-       } else if (error.code === 'auth/network-request-failed') {
-          errorMessage = "Network error. Please check your internet connection and try again."
-       } else if (error.message && error.message.includes('reCAPTCHA')) {
-           errorMessage = "reCAPTCHA verification failed. This can happen due to network issues or browser extensions. Please refresh and try again.";
-       }
-       toast({
+      console.error("Registration Error:", error);
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "This email address is already in use by another account.";
+      }
+      toast({
         title: "Registration Failed",
-        description: errorMessage,
+        description: description,
         variant: "destructive",
       });
     } finally {
@@ -88,29 +74,35 @@ export default function CustomerLoginPage() {
     }
   };
 
-  const handleVerifyOtp = async (values: z.infer<typeof otpSchema>) => {
-    if (!confirmationResult) return;
+  const handleLogin = async (values: z.infer<typeof loginSchema>) => {
     setLoading(true);
     try {
-      const userCredential = await confirmationResult.confirm(values.otp);
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
-      
-      if (user && userData?.name) {
-        await updateProfile(user, { displayName: userData.name });
-      }
 
-      toast({
-        title: "Registration Successful!",
-        description: `Welcome, ${userData?.name}! Your account is ready.`,
-      });
-      registerForm.reset();
-      otpForm.reset();
-      setOtpSent(false);
+      if (user.emailVerified) {
+        toast({
+          title: "Login Successful!",
+          description: `Welcome back, ${user.displayName || 'user'}!`,
+        });
+        loginForm.reset();
+      } else {
+         await sendEmailVerification(user);
+         toast({
+          title: "Email Not Verified",
+          description: "Please check your inbox for the verification link. A new link has been sent.",
+          variant: "destructive"
+        });
+      }
     } catch (error: any) {
-      console.error("OTP Verify Error:", error);
-      toast({
-        title: "Verification Failed",
-        description: "The OTP you entered is incorrect. Please try again.",
+       console.error("Login Error:", error);
+        let description = "An unexpected error occurred. Please try again.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            description = "Invalid email or password. Please check your credentials and try again.";
+        }
+       toast({
+        title: "Login Failed",
+        description: description,
         variant: "destructive",
       });
     } finally {
@@ -118,83 +110,108 @@ export default function CustomerLoginPage() {
     }
   }
 
-
   return (
-    <>
-      <div id="recaptcha-container"></div>
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Customer Registration</CardTitle>
+          <CardTitle className="font-headline text-2xl">Customer Account</CardTitle>
           <CardDescription>
-            {otpSent ? "Enter the OTP sent to your mobile." : "Create your account with your phone number."}
+            Login or create a new account to start shopping.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!otpSent ? (
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4 pt-4">
-                   <FormField
-                    control={registerForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl><Input placeholder="e.g., Priya Sharma" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl><Input type="tel" placeholder="+91 98765 43210" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={registerForm.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Address</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="e.g., 123 Green Way, Eco City, 110011" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
-                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP...</> : 'Send OTP'}
-                  </Button>
-                </form>
-              </Form>
-          ) : (
-              <Form {...otpForm}>
-                <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="space-y-4 pt-4">
-                  <FormField
-                    control={otpForm.control}
-                    name="otp"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>One-Time Password (OTP)</FormLabel>
-                        <FormControl><Input type="text" inputMode="numeric" pattern="\d{6}" placeholder="Enter 6-digit OTP" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
-                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</> : 'Verify & Register'}
-                  </Button>
-                </form>
-              </Form>
-          )}
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 pt-4">
+                        <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl><Input placeholder="you@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
+                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...</> : 'Login'}
+                      </Button>
+                    </form>
+                </Form>
+              </TabsContent>
+              <TabsContent value="register">
+                <Form {...registerForm}>
+                    <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4 pt-4">
+                       <FormField
+                        control={registerForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl><Input placeholder="e.g., Priya Sharma" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl><Input placeholder="you@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Address</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., 123 Green Way, Eco City, 110011" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
+                         {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</> : 'Register'}
+                      </Button>
+                    </form>
+                  </Form>
+              </TabsContent>
+            </Tabs>
         </CardContent>
       </Card>
-    </>
   );
 }
