@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronDown, User, LogOut, Package } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return '';
@@ -31,6 +32,7 @@ export default function Header() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -49,6 +51,10 @@ export default function Header() {
   const handleLogout = async () => {
     const auth = getAuth(app);
     await signOut(auth);
+    toast({
+        title: "Logout Successful",
+        description: "You have been successfully logged out.",
+    });
     router.push('/');
   };
 
