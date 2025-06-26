@@ -53,7 +53,7 @@ export default async function AdminOrdersPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Order ID</TableHead>
+                            <TableHead>Order</TableHead>
                             <TableHead>Customer</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Items</TableHead>
@@ -64,8 +64,9 @@ export default async function AdminOrdersPage() {
                         {orders.length > 0 ? (
                             orders.map((order) => (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-medium">
-                                        #{order.id.substring(0, 7)}
+                                    <TableCell>
+                                        <div className="font-medium">#{order.id.substring(0, 8).toUpperCase()}</div>
+                                        <div className="text-xs text-muted-foreground hidden md:block">{order.id}</div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="font-medium">{order.customerName}</div>
