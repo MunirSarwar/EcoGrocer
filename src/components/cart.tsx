@@ -4,9 +4,10 @@ import Image from 'next/image';
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SheetHeader, SheetTitle, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { SheetHeader, SheetTitle, SheetFooter, SheetDescription, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateItemQuantity, cartCount, cartTotal } = useCart();
@@ -78,7 +79,11 @@ export default function Cart() {
                     <p>Subtotal</p>
                     <p>₹{cartTotal.toFixed(2)}</p>
                 </div>
-                <Button className="w-full" disabled>Proceed to Checkout</Button>
+                <SheetClose asChild>
+                    <Button asChild className="w-full">
+                        <Link href="/checkout">Proceed to Checkout</Link>
+                    </Button>
+                </SheetClose>
             </div>
         </SheetFooter>
         </>
