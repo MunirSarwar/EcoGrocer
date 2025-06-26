@@ -3,47 +3,49 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const customers = [
+// In a real application, this data would be fetched from your backend,
+// which would use the Firebase Admin SDK to list all authenticated users.
+const allCustomers = [
   {
     id: 'USR001',
     name: 'Suresh Kumar',
     email: 'suresh.k@example.com',
-    status: 'Verified',
+    emailVerified: true,
     joined: '2023-10-25',
   },
   {
     id: 'USR002',
     name: 'Priya Sharma',
     email: 'priya.sharma@example.com',
-    status: 'Verified',
+    emailVerified: true,
     joined: '2023-10-24',
   },
   {
     id: 'USR003',
     name: 'Amit Patel',
     email: 'amit.p@example.com',
-    status: 'Pending Verification',
+    emailVerified: false,
     joined: '2023-10-24',
   },
   {
     id: 'USR004',
     name: 'Deepika Rao',
     email: 'deepika.rao@example.com',
-    status: 'Verified',
+    emailVerified: true,
     joined: '2023-10-23',
   },
    {
     id: 'USR005',
     name: 'Rajesh Singh',
     email: 'rajesh.singh@example.com',
-    status: 'Verified',
+    emailVerified: true,
     joined: '2023-10-22',
   },
    {
     id: 'USR006',
     name: 'Anita Desai',
     email: 'anita.d@example.com',
-    status: 'Pending Verification',
+    emailVerified: false,
     joined: '2023-10-21',
   },
 ];
@@ -55,11 +57,13 @@ const getInitials = (name: string) => {
 };
 
 export default function CustomersPage() {
+  const verifiedCustomers = allCustomers.filter(customer => customer.emailVerified);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Customers</CardTitle>
-        <CardDescription>A list of all registered customers on EcoGrocer Hub.</CardDescription>
+        <CardTitle>Verified Customers</CardTitle>
+        <CardDescription>A list of all customers who have verified their email address.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -72,8 +76,8 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-             {customers.length > 0 ? (
-                customers.map((customer) => (
+             {verifiedCustomers.length > 0 ? (
+                verifiedCustomers.map((customer) => (
                     <TableRow key={customer.id}>
                         <TableCell>
                             <div className="flex items-center gap-4">
@@ -85,8 +89,8 @@ export default function CustomersPage() {
                         </TableCell>
                         <TableCell>{customer.email}</TableCell>
                         <TableCell>
-                          <Badge variant={customer.status === 'Verified' ? 'default' : 'secondary'}>
-                            {customer.status}
+                          <Badge variant={customer.emailVerified ? 'default' : 'secondary'}>
+                            {customer.emailVerified ? 'Verified' : 'Unverified'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -101,7 +105,7 @@ export default function CustomersPage() {
             ) : (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                        No customers found.
+                        No verified customers found.
                     </TableCell>
                 </TableRow>
             )}
