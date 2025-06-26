@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ export default function CustomerLoginPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const auth = getAuth(app);
+  const router = useRouter();
 
   const registerForm = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
@@ -83,9 +85,10 @@ export default function CustomerLoginPage() {
       if (user.emailVerified) {
         toast({
           title: "Login Successful!",
-          description: `Welcome back, ${user.displayName || 'user'}!`,
+          description: `Welcome back, ${user.displayName || 'user'}! Redirecting...`,
         });
         loginForm.reset();
+        router.push('/');
       } else {
          await sendEmailVerification(user);
          toast({
