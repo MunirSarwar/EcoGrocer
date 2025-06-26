@@ -60,3 +60,30 @@ export function addProduct(newProductData: Omit<Product, 'id' | 'image'> & { ima
     localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
     return newProduct;
 }
+
+export function updateProduct(updatedProduct: Product): Product {
+    if (!isBrowser) {
+        throw new Error("updateProduct cannot be called on the server.");
+    }
+    const currentProducts = getProducts();
+    const productIndex = currentProducts.findIndex(p => p.id === updatedProduct.id);
+
+    if (productIndex === -1) {
+        throw new Error("Product not found");
+    }
+
+    const updatedProducts = [...currentProducts];
+    updatedProducts[productIndex] = updatedProduct;
+    
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
+    return updatedProduct;
+}
+
+export function deleteProduct(productId: number): void {
+    if (!isBrowser) {
+        throw new Error("deleteProduct cannot be called on the server.");
+    }
+    const currentProducts = getProducts();
+    const updatedProducts = currentProducts.filter(p => p.id !== productId);
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
+}
