@@ -243,8 +243,19 @@ export default function SellerProductsPage() {
                                     name="price"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Price (₹)</FormLabel>
-                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                            <FormLabel>Price</FormLabel>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                                                        ₹
+                                                    </span>
+                                                    <Input
+                                                        type="number"
+                                                        className="pl-7"
+                                                        {...field}
+                                                    />
+                                                </div>
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
