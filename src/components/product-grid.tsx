@@ -13,15 +13,15 @@ export interface Product {
   description: string;
 }
 
-const allProducts: Product[] = [
-  { id: 1, name: 'Organic Carrots', category: 'Vegetables', price: 80, image: 'https://placehold.co/400x400/F4A261/FFFFFF.png', description: '500g of fresh, crunchy organic carrots.' },
-  { id: 2, name: 'Heirloom Tomatoes', category: 'Vegetables', price: 120, image: 'https://placehold.co/400x400/E76F51/FFFFFF.png', description: '500g of colorful and sweet heirloom tomatoes.' },
-  { id: 3, name: 'Gala Apples', category: 'Fruits', price: 250, image: 'https://placehold.co/400x400/D62828/FFFFFF.png', description: '1kg of crisp and sweet apples, perfect for snacking.' },
-  { id: 4, name: 'Organic Bananas', category: 'Fruits', price: 90, image: 'https://placehold.co/400x400/FCBF49/000000.png', description: 'A dozen ripe, organic bananas.' },
-  { id: 5, name: 'Almond Milk', category: 'Dairy', price: 280, image: 'https://placehold.co/400x400/CAF0F8/000000.png', description: '1L of unsweetened vanilla almond milk.' },
-  { id: 6, name: 'Free-Range Eggs', category: 'Dairy', price: 150, image: 'https://placehold.co/400x400/F1FAEE/000000.png', description: 'A dozen large brown free-range eggs.' },
-  { id: 7, name: 'Sourdough Bread', category: 'Bakery', price: 220, image: 'https://placehold.co/400x400/BC6C25/FFFFFF.png', description: 'Artisanal sourdough loaf, baked fresh daily.' },
-  { id: 8, name: 'Whole Wheat Loaf', category: 'Bakery', price: 70, image: 'https://placehold.co/400x400/8A5A44/FFFFFF.png', description: 'Hearty and healthy whole wheat bread.' },
+export const allProducts: Product[] = [
+  { id: 1, name: 'Organic Carrots', category: 'Vegetables', price: 80, image: 'https://placehold.co/400x400.png', description: '500g of fresh, crunchy organic carrots.' },
+  { id: 2, name: 'Heirloom Tomatoes', category: 'Vegetables', price: 120, image: 'https://placehold.co/400x400.png', description: '500g of colorful and sweet heirloom tomatoes.' },
+  { id: 3, name: 'Gala Apples', category: 'Fruits', price: 250, image: 'https://placehold.co/400x400.png', description: '1kg of crisp and sweet apples, perfect for snacking.' },
+  { id: 4, name: 'Organic Bananas', category: 'Fruits', price: 90, image: 'https://placehold.co/400x400.png', description: 'A dozen ripe, organic bananas.' },
+  { id: 5, name: 'Almond Milk', category: 'Dairy', price: 280, image: 'https://placehold.co/400x400.png', description: '1L of unsweetened vanilla almond milk.' },
+  { id: 6, name: 'Free-Range Eggs', category: 'Dairy', price: 150, image: 'https://placehold.co/400x400.png', description: 'A dozen large brown free-range eggs.' },
+  { id: 7, name: 'Sourdough Bread', category: 'Bakery', price: 220, image: 'https://placehold.co/400x400.png', description: 'Artisanal sourdough loaf, baked fresh daily.' },
+  { id: 8, name: 'Whole Wheat Loaf', category: 'Bakery', price: 70, image: 'https://placehold.co/400x400.png', description: 'Hearty and healthy whole wheat bread.' },
 ];
 
 export default function ProductGrid() {
