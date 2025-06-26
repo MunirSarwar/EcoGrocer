@@ -23,6 +23,7 @@ const registrationSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address." }),
     password: z.string().min(6, { message: "Password must be at least 6 characters." }),
     phone: z.string().min(10, { message: "Please enter a valid 10-digit phone number." }).max(15, { message: "Phone number is too long." }),
+    licenseNumber: z.string().min(5, { message: "Please enter a valid license number." }),
     vehicleType: z.enum(['Bike', 'Scooter', 'E-rickshaw', 'Other']),
 });
 
@@ -41,7 +42,7 @@ export default function DeliveryLoginPage() {
 
   const registerForm = useForm<z.infer<typeof registrationSchema>>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { name: "", email: "", password: "", phone: "" },
+    defaultValues: { name: "", email: "", password: "", phone: "", licenseNumber: "" },
   });
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -57,7 +58,7 @@ export default function DeliveryLoginPage() {
       
       await updateProfile(user, { displayName: `${values.name} (Delivery)` });
       
-      // TODO: Save phone and vehicle type to a secure database (e.g., Firestore) associated with user.uid.
+      // TODO: Save phone, vehicle type, and license number to a secure database (e.g., Firestore) associated with user.uid.
       
       await sendEmailVerification(user);
 
@@ -199,6 +200,17 @@ export default function DeliveryLoginPage() {
                           <FormItem>
                             <FormLabel>Phone Number</FormLabel>
                             <FormControl><Input type="tel" placeholder="e.g., 9876543210" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="licenseNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Driving License Number</FormLabel>
+                            <FormControl><Input placeholder="e.g., DL01A20230012345" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
