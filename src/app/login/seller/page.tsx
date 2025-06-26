@@ -6,13 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { setDoc, doc } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -50,21 +51,23 @@ export default function SellerLoginPage() {
   const handleRegister = async (values: z.infer<typeof registrationSchema>) => {
     setLoading(true);
     try {
-      // In a real application, you would first verify the PAN/GST details with a backend service.
-      // For this prototype, we will proceed directly with user creation.
-      
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
       await updateProfile(user, { displayName: `${values.name} (Seller)` });
 
-      // TODO: Save PAN and GST to a secure database (e.g., Firestore) associated with user.uid.
+      // Save PAN and GST to a secure database (Firestore) associated with user.uid.
+      await setDoc(doc(db, "sellers", user.uid), {
+          pan: values.pan,
+          gst: values.gst || null,
+          status: 'pending', // Set initial status
+      });
       
       await sendEmailVerification(user);
 
       toast({
-        title: "Registration Successful!",
-        description: "A verification link has been sent to your email. Please verify to continue.",
+        title: "Registration Submitted!",
+        description: "Your application is under review. A verification link has been sent to your email. Please verify to continue.",
       });
       registerForm.reset();
       setActiveTab('login');
@@ -92,7 +95,8 @@ export default function SellerLoginPage() {
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        // TODO: In a real app, you'd check if this user has a 'seller' role in your database.
+        // TODO: In a real app, you'd check if this user has a 'seller' role in your database
+        // and if their status is 'approved'.
         toast({
           title: "Login Successful!",
           description: `Welcome back, Seller! Redirecting to your dashboard...`,
@@ -228,7 +232,7 @@ export default function SellerLoginPage() {
                         )}
                       />
                       <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
-                         {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</> : 'Create Seller Account'}
+                         {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Create Seller Account'}
                       </Button>
                     </form>
                   </Form>
