@@ -12,8 +12,41 @@ export interface Product {
   description: string;
 }
 
-// The initial product list is now empty.
-export const initialProducts: Product[] = [];
+// Add some initial products so the store doesn't look empty.
+export const initialProducts: Product[] = [
+    {
+        id: 1,
+        name: 'Organic Carrots',
+        category: 'Vegetables',
+        price: 50,
+        image: 'https://placehold.co/400x400.png',
+        description: 'Fresh, crunchy organic carrots, packed with vitamins.',
+    },
+    {
+        id: 2,
+        name: 'Fresh Apples',
+        category: 'Fruits',
+        price: 120,
+        image: 'https://placehold.co/400x400.png',
+        description: 'Crisp and juicy apples, perfect for a healthy snack.',
+    },
+    {
+        id: 3,
+        name: 'Almond Milk',
+        category: 'Dairy',
+        price: 200,
+        image: 'https://placehold.co/400x400.png',
+        description: 'A creamy and delicious dairy-free alternative.',
+    },
+    {
+        id: 4,
+        name: 'Sourdough Bread',
+        category: 'Bakery',
+        price: 150,
+        image: 'https://placehold.co/400x400.png',
+        description: 'Artisanal sourdough loaf with a tangy flavor and crisp crust.',
+    }
+];
 
 const PRODUCTS_STORAGE_KEY = 'eco-grocer-products';
 
