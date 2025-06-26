@@ -68,9 +68,19 @@ export default function CustomerLoginPage() {
       });
     } catch (error: any) {
        console.error("OTP Send Error:", error);
+       let errorMessage = "Could not send OTP. Please check the phone number and try again.";
+       if (error.code === 'auth/invalid-phone-number') {
+           errorMessage = "The phone number format is invalid. Please include the country code (e.g., +91).";
+       } else if (error.code === 'auth/too-many-requests') {
+           errorMessage = "You've tried to send too many OTPs. Please wait a while before trying again.";
+       } else if (error.code === 'auth/network-request-failed') {
+          errorMessage = "Network error. Please check your internet connection and try again."
+       } else if (error.message && error.message.includes('reCAPTCHA')) {
+           errorMessage = "reCAPTCHA verification failed. This can happen due to network issues or browser extensions. Please refresh and try again.";
+       }
        toast({
         title: "Registration Failed",
-        description: "Could not send OTP. Please check the phone number and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
