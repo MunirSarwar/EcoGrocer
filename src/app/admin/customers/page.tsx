@@ -43,7 +43,13 @@ export default async function CustomersPage() {
 
   const allCustomers = await getCustomers();
   const verifiedCustomers = allCustomers.filter(c => c.emailVerified);
-  const pendingCustomers = allCustomers.filter(c => !c.emailVerified);
+  
+  const tenMinutesInMs = 10 * 60 * 1000;
+  const now = Date.now();
+  const pendingCustomers = allCustomers.filter(c => 
+    !c.emailVerified && (now - new Date(c.joined).getTime() < tenMinutesInMs)
+  );
+
 
   return (
     <div className="space-y-6">
@@ -103,7 +109,7 @@ export default async function CustomersPage() {
         <Card>
           <CardHeader>
             <CardTitle>Pending Verification</CardTitle>
-            <CardDescription>A list of customers who have not yet verified their email address.</CardDescription>
+            <CardDescription>A list of customers who have signed up in the last 10 minutes but have not yet verified their email.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
