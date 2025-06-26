@@ -20,10 +20,11 @@ export default function OrdersPage() {
 
     useEffect(() => {
         const auth = getAuth(app);
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
-                setOrders(getOrders(currentUser.uid));
+                const userOrders = await getOrders(currentUser.uid);
+                setOrders(userOrders);
             }
             setLoading(false);
         });
@@ -73,7 +74,7 @@ export default function OrdersPage() {
                             <AccordionTrigger>
                                 <div className="flex justify-between w-full pr-4 text-left">
                                     <div>
-                                        <p className="font-medium">Order #{order.id.split('-').pop()?.toUpperCase()}</p>
+                                        <p className="font-medium">Order #{order.id.substring(0, 7).toUpperCase()}</p>
                                         <p className="text-sm text-muted-foreground">{new Date(order.date).toLocaleDateString('en-IN', {
                                             year: 'numeric', month: 'long', day: 'numeric'
                                         })}</p>

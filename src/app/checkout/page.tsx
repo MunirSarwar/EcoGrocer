@@ -30,7 +30,7 @@ export default function CheckoutPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     if (!user) {
         toast({
             title: "Please Login",
@@ -43,17 +43,26 @@ export default function CheckoutPage() {
     
     setLoading(true);
 
-    // In a real app, this would trigger payment processing.
-    // For this prototype, we'll save the order, clear the cart, and redirect.
-    addOrder(user.uid, cartItems, cartTotal);
-    
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase. We've saved your order.",
-    });
-    
-    clearCart();
-    router.push('/orders');
+    try {
+      await addOrder(user.uid, cartItems, cartTotal);
+      
+      toast({
+        title: "Order Placed!",
+        description: "Thank you for your purchase. We've saved your order.",
+      });
+      
+      clearCart();
+      router.push('/orders');
+    } catch(error) {
+        console.error("Failed to place order:", error);
+        toast({
+            title: "Order Failed",
+            description: "There was a problem placing your order. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   if (cartItems.length === 0) {

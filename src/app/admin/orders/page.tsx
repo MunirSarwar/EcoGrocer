@@ -1,24 +1,101 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { getAllOrders } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Server } from "lucide-react";
+import { Terminal } from "lucide-react";
 
-export default function AdminOrdersPage() {
-  return (
-    <Card>
-        <CardHeader>
-            <CardTitle>Customer Orders</CardTitle>
-            <CardDescription>A centralized view of all orders placed in the store.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Alert>
-                <Server className="h-4 w-4" />
-                <AlertTitle>Database Integration Required</AlertTitle>
-                <AlertDescription>
-                    <p className="mb-2">To display a complete list of all customer orders here, the application must be connected to a central database like Firestore.</p>
-                    <p className="text-sm text-muted-foreground">Currently, order data is saved in each customer's browser (localStorage) for this prototype. This data is not accessible to the admin panel. A backend database is needed to store and retrieve all orders centrally.</p>
-                </AlertDescription>
-            </Alert>
-        </CardContent>
-    </Card>
-  )
+export default async function AdminOrdersPage() {
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Orders Data Locked</CardTitle>
+                    <CardDescription>Configure your backend to see customer orders.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Alert>
+                        <Terminal className="h-4 w-4" />
+                        <AlertTitle>Configuration Needed</AlertTitle>
+                        <AlertDescription>
+                            <p>To view your customer orders, you need to set up your Firebase Admin credentials in your <strong>.env.local</strong> file.</p>
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    const orders = await getAllOrders();
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Customer Orders</CardTitle>
+                <CardDescription>
+                    A list of all orders placed in your store.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Items</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {orders.length > 0 ? (
+                            orders.map((order) => (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-medium">
+                                        #{order.id.substring(0, 7)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{order.customerName}</div>
+                                        <div className="text-sm text-muted-foreground">{order.customerEmail}</div>
+                                    </TableCell>
+                                     <TableCell>
+                                        {new Date(order.date).toLocaleDateString('en-IN', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline">{order.items.length}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">
+                                        ₹{order.total.toFixed(2)}
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    No orders found yet.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
 }
