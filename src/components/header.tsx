@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, User, LogOut, Package } from 'lucide-react';
+import { ChevronDown, User, LogOut, Package, LayoutGrid } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const getInitials = (name: string | null | undefined): string => {
@@ -98,18 +98,29 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>My Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="#">
-                    <Package className="mr-2 h-4 w-4" />
-                    <span>My Orders</span>
-                  </Link>
-                </DropdownMenuItem>
+                {user.displayName?.includes('(Seller)') ? (
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link href="/seller/dashboard">
+                            <LayoutGrid className="mr-2 h-4 w-4" />
+                            <span>Seller Dashboard</span>
+                        </Link>
+                    </DropdownMenuItem>
+                ) : (
+                    <>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                            <Link href="/profile">
+                                <User className="mr-2 h-4 w-4" />
+                                <span>My Profile</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                            <Link href="#">
+                                <Package className="mr-2 h-4 w-4" />
+                                <span>My Orders</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />

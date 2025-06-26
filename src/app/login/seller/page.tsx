@@ -98,8 +98,7 @@ export default function SellerLoginPage() {
           description: `Welcome back, Seller! Redirecting to your dashboard...`,
         });
         loginForm.reset();
-        // Redirect to a future seller dashboard
-        router.push('/'); 
+        router.push('/seller/dashboard'); 
       } else {
          await sendEmailVerification(user);
          toast({
