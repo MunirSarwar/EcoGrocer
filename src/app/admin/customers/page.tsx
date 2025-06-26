@@ -2,62 +2,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-// In a real application, this data would be fetched from your backend,
-// which would use the Firebase Admin SDK to list all authenticated users.
-const allCustomers = [
-  {
-    id: 'USR001',
-    name: 'Suresh Kumar',
-    email: 'suresh.k@example.com',
-    emailVerified: true,
-    joined: '2023-10-25',
-  },
-  {
-    id: 'USR002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@example.com',
-    emailVerified: true,
-    joined: '2023-10-24',
-  },
-  {
-    id: 'USR003',
-    name: 'Amit Patel',
-    email: 'amit.p@example.com',
-    emailVerified: false,
-    joined: '2023-10-24',
-  },
-  {
-    id: 'USR004',
-    name: 'Deepika Rao',
-    email: 'deepika.rao@example.com',
-    emailVerified: true,
-    joined: '2023-10-23',
-  },
-   {
-    id: 'USR005',
-    name: 'Rajesh Singh',
-    email: 'rajesh.singh@example.com',
-    emailVerified: true,
-    joined: '2023-10-22',
-  },
-   {
-    id: 'USR006',
-    name: 'Anita Desai',
-    email: 'anita.d@example.com',
-    emailVerified: false,
-    joined: '2023-10-21',
-  },
-];
+import { getVerifiedCustomers } from "./actions"; // Import the new server action
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return 'N/A';
     const names = name.split(' ');
     const initials = names.map((n) => n[0]).join('');
     return initials.substring(0, 2).toUpperCase();
 };
 
-export default function CustomersPage() {
-  const verifiedCustomers = allCustomers.filter(customer => customer.emailVerified);
+export default async function CustomersPage() {
+  // Check if credentials are set up. If not, show a helpful message.
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Customer Data Locked</CardTitle>
+                <CardDescription>Configure your backend to see customer information.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Configuration Needed</AlertTitle>
+                    <AlertDescription>
+                        <p className="mb-2">To view your customers, you need to set up your Firebase Admin credentials.</p>
+                        <ol className="list-decimal list-inside space-y-1 text-sm">
+                            <li>Go to your Firebase project settings and generate a new service account private key.</li>
+                            <li>Create a new file named <strong>.env.local</strong> in your project's root directory.</li>
+                            <li>Copy your credentials from the downloaded JSON file into <strong>.env.local</strong>, using <strong>.env.local.example</strong> as a template.</li>
+                             <li>Restart your development server for the changes to take effect.</li>
+                        </ol>
+                    </AlertDescription>
+                </Alert>
+            </CardContent>
+        </Card>
+    )
+  }
+
+  const verifiedCustomers = await getVerifiedCustomers();
 
   return (
     <Card>
@@ -82,7 +66,7 @@ export default function CustomersPage() {
                         <TableCell>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-9 w-9">
-                                    <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
+                                    <AvatarFallback>{getInitials(customer.name || '')}</AvatarFallback>
                                 </Avatar>
                                 <div className="font-medium">{customer.name}</div>
                             </div>
