@@ -1,67 +1,241 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { app } from '@/lib/firebase';
+import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const registrationSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+    pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { message: "Please enter a valid PAN number." }),
+    gst: z.string().optional().or(z.literal('')), // Optional GST
+});
+
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+});
+
 
 export default function SellerLoginPage() {
-  const [otpSent, setOtpSent] = useState(false);
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
+  const auth = getAuth(app);
+  const router = useRouter();
 
-  const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    setOtpSent(true);
-    toast({
-        title: "OTP Sent",
-        description: "An OTP has been sent to your mobile number.",
-    });
+  const registerForm = useForm<z.infer<typeof registrationSchema>>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: { name: "", email: "", password: "", pan: "", gst: "" },
+  });
+
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  const handleRegister = async (values: z.infer<typeof registrationSchema>) => {
+    setLoading(true);
+    try {
+      // In a real application, you would first verify the PAN/GST details with a backend service.
+      // For this prototype, we will proceed directly with user creation.
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+      
+      await updateProfile(user, { displayName: `${values.name} (Seller)` });
+
+      // TODO: Save PAN and GST to a secure database (e.g., Firestore) associated with user.uid.
+      
+      await sendEmailVerification(user);
+
+      toast({
+        title: "Registration Successful!",
+        description: "A verification link has been sent to your email. Please verify to continue.",
+      });
+      registerForm.reset();
+      setActiveTab('login');
+
+    } catch (error: any) {
+      console.error("Seller Registration Error:", error);
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "This email address is already registered.";
+      }
+      toast({
+        title: "Registration Failed",
+        description: description,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-        title: "Login Successful",
-        description: "Welcome back, Seller!",
-    });
-  };
+  const handleLogin = async (values: z.infer<typeof loginSchema>) => {
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      if (user.emailVerified) {
+        // TODO: In a real app, you'd check if this user has a 'seller' role in your database.
+        toast({
+          title: "Login Successful!",
+          description: `Welcome back, Seller! Redirecting to your dashboard...`,
+        });
+        loginForm.reset();
+        // Redirect to a future seller dashboard
+        router.push('/'); 
+      } else {
+         await sendEmailVerification(user);
+         toast({
+          title: "Email Not Verified",
+          description: "Please check your inbox for the verification link. A new link has been sent.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+       console.error("Seller Login Error:", error);
+        let description = "An unexpected error occurred. Please try again.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            description = "Invalid email or password. Please check your credentials.";
+        }
+       toast({
+        title: "Login Failed",
+        description: description,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Seller Login or Register</CardTitle>
-        <CardDescription>
-          {otpSent ? 'Enter the OTP sent to your mobile.' : 'Use your mobile number to access your seller account.'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!otpSent ? (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" placeholder="e.g., +1 555 123 4567" required />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Send OTP</Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="otp">One-Time Password (OTP)</Label>
-              <Input id="otp" type="text" inputMode="numeric" pattern="\d{6}" placeholder="Enter 6-digit OTP" required />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Verify & Login</Button>
-          </form>
-        )}
-      </CardContent>
-      {otpSent && (
-        <CardFooter>
-          <Button variant="link" size="sm" className="w-full" onClick={() => setOtpSent(false)}>
-            Use a different number
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">Seller Hub</CardTitle>
+          <CardDescription>
+            Login or create a new seller account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 pt-4">
+                        <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl><Input placeholder="seller@business.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
+                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...</> : 'Login'}
+                      </Button>
+                    </form>
+                </Form>
+              </TabsContent>
+              <TabsContent value="register">
+                <Form {...registerForm}>
+                    <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4 pt-4">
+                       <FormField
+                        control={registerForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Name</FormLabel>
+                            <FormControl><Input placeholder="e.g., Eco Enterprises" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Email</FormLabel>
+                            <FormControl><Input placeholder="contact@eco-enterprises.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="pan"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>PAN Card Number</FormLabel>
+                            <FormControl><Input placeholder="ABCDE1234F" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={registerForm.control}
+                        name="gst"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>GST Number (Optional)</FormLabel>
+                            <FormControl><Input placeholder="22AAAAA0000A1Z5" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
+                         {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</> : 'Create Seller Account'}
+                      </Button>
+                    </form>
+                  </Form>
+              </TabsContent>
+            </Tabs>
+        </CardContent>
+      </Card>
   );
 }
