@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { addProduct } from '@/lib/product-service';
+import { useRouter } from 'next/navigation';
 
 const productSchema = z.object({
   name: z.string().min(3, { message: "Product name must be at least 3 characters." }),
@@ -24,6 +26,7 @@ const productSchema = z.object({
 export default function SellerDashboardPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -37,19 +40,28 @@ export default function SellerDashboardPage() {
 
   const onSubmit = (values: z.infer<typeof productSchema>) => {
     setLoading(true);
-    // In a real application, you would send this data to your backend to be saved in a database.
-    // The product list on the main page would then fetch from that database.
-    // For this prototype, we'll just simulate the action and show a success message.
-    console.log("New Product Data:", values);
+    // This now uses our client-side service to "save" the product.
+    // In a real app, this would be a server action calling a database.
+    try {
+      const newProduct = addProduct(values);
 
-    setTimeout(() => {
-        toast({
-            title: "Product Added Successfully!",
-            description: `"${values.name}" is now available for sale.`,
-        });
-        form.reset();
-        setLoading(false);
-    }, 1000); // Simulate network delay
+      toast({
+          title: "Product Added Successfully!",
+          description: `"${newProduct.name}" is now available for sale.`,
+      });
+      form.reset();
+      // Redirect to the products page to see the new product in the list
+      router.push('/seller/products');
+    } catch (error) {
+      console.error("Failed to add product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add the product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

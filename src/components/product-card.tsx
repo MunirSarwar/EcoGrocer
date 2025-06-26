@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from './ui/badge';
-import type { Product } from './product-grid';
+import type { Product } from '@/lib/product-service';
 
 interface ProductCardProps {
   product: Product;
