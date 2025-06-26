@@ -1,3 +1,5 @@
+'use client';
+
 import { db } from './firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp, orderBy, Timestamp } from 'firebase/firestore';
 import type { CartItem } from './cart-service';
@@ -35,9 +37,15 @@ export async function getOrders(userId: string): Promise<Order[]> {
     });
     return orders;
   } catch (error: any) {
-    // This error code (5) means "NOT_FOUND". It can happen if the 'orders' collection
-    // or the required index doesn't exist yet. This is an expected condition for a new user,
-    // so we can safely return an empty array.
+    // This error happens if the composite index for the query isn't created in Firestore yet.
+    if (error.code === 'failed-precondition') {
+      console.warn(
+        "Firestore index missing. This is expected on the first query. " +
+        "Go to the link in the Firebase console error to create it automatically."
+      );
+      return [];
+    }
+     // This error code means the collection doesn't exist yet, which is fine.
     if (error.code === 5) {
       return [];
     }
@@ -47,13 +55,12 @@ export async function getOrders(userId: string): Promise<Order[]> {
 }
 
 // Function to add a new order
-export async function addOrder(userId: string, cartItems: CartItem[], total: number): Promise<Order> {
+export async function addOrder(userId: string, cartItems: CartItem[], total: number): Promise<void> {
   if (!userId || !cartItems || cartItems.length === 0) {
-    throw new Error("User ID and cart items are required.");
+    throw new Error("User ID and cart items are required to place an order.");
   }
+  
   try {
-    // Manually map cart items to plain objects to ensure data is clean for Firestore.
-    // This prevents potential issues with complex object types or undefined fields.
     const orderItems = cartItems.map(item => ({
       id: item.id,
       name: item.name,
@@ -70,19 +77,12 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
       total,
       date: serverTimestamp(),
     };
-    const docRef = await addDoc(collection(db, 'orders'), newOrderData);
-    
-    return {
-        id: docRef.id,
-        items: cartItems,
-        total,
-        userId,
-        date: new Date().toISOString() // Return current date as a temporary placeholder
-    };
+
+    await addDoc(collection(db, 'orders'), newOrderData);
 
   } catch (error) {
-    console.error("Error adding order to Firestore:", error);
-    // Re-throw the error so the calling function on the checkout page can handle it.
-    throw error;
+    console.error("Failed to write order to Firestore:", error);
+    // Re-throw a more user-friendly error to be caught by the checkout page.
+    throw new Error("Could not save your order. Please try again.");
   }
 }
