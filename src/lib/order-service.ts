@@ -34,7 +34,13 @@ export async function getOrders(userId: string): Promise<Order[]> {
       });
     });
     return orders;
-  } catch (error) {
+  } catch (error: any) {
+    // This error code (5) means "NOT_FOUND". It can happen if the 'orders' collection
+    // or the required index doesn't exist yet. This is an expected condition for a new user,
+    // so we can safely return an empty array.
+    if (error.code === 5) {
+      return [];
+    }
     console.error("Error fetching orders from Firestore:", error);
     return [];
   }
@@ -46,10 +52,21 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
     throw new Error("User ID and cart items are required.");
   }
   try {
+    // Manually map cart items to plain objects to ensure data is clean for Firestore.
+    // This prevents potential issues with complex object types or undefined fields.
+    const orderItems = cartItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      image: item.image,
+      description: item.description,
+      quantity: item.quantity,
+    }));
+
     const newOrderData = {
       userId,
-      // Firestore requires plain objects. This ensures we don't pass any custom class instances or undefined values.
-      items: JSON.parse(JSON.stringify(cartItems)),
+      items: orderItems,
       total,
       date: serverTimestamp(),
     };
@@ -65,7 +82,7 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
 
   } catch (error) {
     console.error("Error adding order to Firestore:", error);
-    // Re-throw the error so the calling function can handle it.
+    // Re-throw the error so the calling function on the checkout page can handle it.
     throw error;
   }
 }
