@@ -10,6 +10,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   userId: string;
+  status?: 'placed' | 'in-transit' | 'delivered';
 }
 
 // Function to fetch orders for a specific user
@@ -19,9 +20,8 @@ export async function getOrders(userId: string): Promise<Order[]> {
   }
   try {
     const ordersRef = collection(db, 'orders');
-    // We removed orderBy('date') to avoid needing a composite index.
-    // We will sort the results in JavaScript instead.
-    const q = query(ordersRef, where('userId', '==', userId));
+    // This query requires a composite index. See your Firebase console for the creation link.
+    const q = query(ordersRef, where('userId', '==', userId), orderBy('date', 'desc'));
     const querySnapshot = await getDocs(q);
     
     const orders: Order[] = [];
@@ -35,11 +35,9 @@ export async function getOrders(userId: string): Promise<Order[]> {
         items: data.items,
         total: data.total,
         date: date,
+        status: data.status || 'placed',
       });
     });
-
-    // Sort orders by date descending in JavaScript
-    orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return orders;
   } catch (error: any) {
@@ -75,6 +73,7 @@ export async function addOrder(userId: string, cartItems: CartItem[], total: num
       })),
       total: total,
       date: serverTimestamp(),
+      status: 'placed', // Set default status
     };
 
     await addDoc(collection(db, 'orders'), newOrderData);

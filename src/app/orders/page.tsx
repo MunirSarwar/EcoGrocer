@@ -12,6 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+
+const getStatusBadge = (status?: Order['status']) => {
+    switch (status) {
+        case 'in-transit':
+            return <Badge variant="secondary" className="capitalize">In Transit</Badge>;
+        case 'delivered':
+            return <Badge variant="default" className="capitalize">Delivered</Badge>;
+        case 'placed':
+        default:
+            return <Badge variant="outline" className="capitalize">{status || 'Placed'}</Badge>;
+    }
+};
 
 export default function OrdersPage() {
     const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -72,7 +85,7 @@ export default function OrdersPage() {
                     {orders.map((order) => (
                         <AccordionItem value={order.id} key={order.id} className="bg-card border rounded-lg px-6">
                             <AccordionTrigger>
-                                <div className="flex justify-between w-full pr-4 text-left">
+                                <div className="flex justify-between items-center w-full pr-4 text-left">
                                     <div>
                                         <p className="font-medium">Order #{order.id.substring(0, 8).toUpperCase()}</p>
                                         <p className="text-sm text-muted-foreground">{new Date(order.date).toLocaleDateString('en-IN', {
@@ -81,7 +94,10 @@ export default function OrdersPage() {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-primary">₹{order.total.toFixed(2)}</p>
-                                        <p className="text-sm text-muted-foreground">{order.items.length} item(s)</p>
+                                        <div className="flex items-center justify-end gap-2 mt-1">
+                                            <p className="text-sm text-muted-foreground">{order.items.length} item(s)</p>
+                                            {getStatusBadge(order.status)}
+                                        </div>
                                     </div>
                                 </div>
                             </AccordionTrigger>
