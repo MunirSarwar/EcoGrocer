@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Store, Truck } from "lucide-react";
+import { Home, ShoppingCart, Package, Users, BarChart3, Settings, Store, Truck, Recycle } from "lucide-react";
 
 const navItems = [
     { href: "/admin/dashboard", icon: <Home />, label: "Dashboard", tooltip: "Dashboard" },
@@ -13,6 +12,7 @@ const navItems = [
     { href: "/admin/sellers", icon: <Store />, label: "Sellers", tooltip: "Sellers" },
     { href: "/admin/customers", icon: <Users />, label: "Customers", tooltip: "Customers" },
     { href: "/admin/delivery", icon: <Truck />, label: "Delivery Partners", tooltip: "Delivery Partners" },
+    { href: "/admin/waste-collection", icon: <Recycle />, label: "Waste Requests", tooltip: "Waste Requests" },
     { href: "#", icon: <BarChart3 />, label: "Analytics", tooltip: "Analytics" },
     { href: "#", icon: <Settings />, label: "Settings", tooltip: "Settings" },
 ];

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, User, LogOut, Package, LayoutGrid, ShoppingCart, Truck } from 'lucide-react';
+import { ChevronDown, User, LogOut, Package, LayoutGrid, ShoppingCart, Truck, Recycle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -150,6 +149,12 @@ export default function Header() {
                               <Link href="/orders">
                                   <Package className="mr-2 h-4 w-4" />
                                   <span>My Orders</span>
+                              </Link>
+                          </DropdownMenuItem>
+                           <DropdownMenuItem asChild className="cursor-pointer">
+                              <Link href="/waste-collection">
+                                  <Recycle className="mr-2 h-4 w-4" />
+                                  <span>Waste Collection</span>
                               </Link>
                           </DropdownMenuItem>
                       </>
